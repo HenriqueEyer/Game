@@ -1,44 +1,18 @@
-import io from 'socket.io-client';
-import { useEffect, useState } from 'react';
-
-const socket = io('http://localhost:4555', { transports : ['websocket'] });
-socket.on('connection', () => console.log('LOGOU'))
-
-const initialState = {
-  username: '',
-  login: false,
-}
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import Home from './pages/home';
+import Room from './pages/room';
 
 function App() {
-  const [user, setUser] = useState(initialState);
-  const [number, setNumber] = useState('');
-
-  const logon = () => {
-    socket.emit('login', user );
-  }
-
-  const username = (e) => {
-    setUser({...user, username: e.target.value});
-  }
-
-  socket.on('success-login', () => setUser({...user, login:true }));
-  socket.on('get-number', (value) => setNumber(value.number));
-
-  useEffect(() => {
-    console.log(number)
-  },[number])
-
-  useEffect(() => {
-    console.log(user)
-  },[user])
-
   return (
-    <div className="App">
-      <p>Realize seu login:</p>
-      <input type="text" onChange={username}/>
-      <input type="button" onClick={()=> logon()} value="Login" />
-    </div>
+      <Router>
+        <Switch>
+          <Route exact path="/" component={Home} />
+          <Route exact path="/room/" component={Room} />
+          <Route exact path="/room/:id" component={Room} />
+        </Switch>
+      </Router>
   );
 }
+
 
 export default App;
