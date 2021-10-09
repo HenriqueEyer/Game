@@ -1,0 +1,5 @@
+export const HANDLE_USERNAME = 'HANDLE_USERNAME';
+export const SET_ROOM_NAME = 'SET_ROOM_NAME';
+export const SET_ROOM_LIST_USERS = 'SET_ROOM_LIST_USERS';
+export const SET_LOGGED = 'SET_LOGGED';
+export const SET_DATA_USER_ROOM = 'SET_DATA_USER_ROOM';

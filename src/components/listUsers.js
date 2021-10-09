@@ -9,8 +9,8 @@ const ListUsers = ({ list }) => {
             <h2>Jogadores na sala</h2>
             <ul>
               {
-                list.map((player) => (
-                  <li>{player.username}</li>
+                list.map((player, index) => (
+                  <li key={player.username + index} >{player.username}</li>
                 ))
               }
             </ul>

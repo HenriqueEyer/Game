@@ -1,47 +1,36 @@
-import io from 'socket.io-client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Redirect } from 'react-router';
-import MessageError from '../components/messageError'
+import MessageError from '../components/messageError';
+import { UserDataContext } from '../context'
+import { SET_ROOM_NAME } from '../labels/actions';
 
-let socket;
-const PORT = 'http://localhost:4555';
+const Home = () => {
 
-function Home() {
-  const [room, setRoom] = useState('');
-  const [redirectPage, setRedirectPage] = useState({ isRedirect: false, roomName: '' });
-  const [redirecting, setRedirecting] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [messageError, setMessageError] = useState('')
+  const { stateData, dispatchData, error, setError, socket } = useContext(UserDataContext);
+  const { room } = stateData;
 
-  useEffect(() => {
-    socket = io(PORT, { transports: ['websocket'] });
-  }, [])
+  const [redirectPage, setRedirectPage] = useState({ isRedirect: false, roomName: '', redirecting: false });
+
 
   useEffect(() => {
-    socket.on('joined_room', (data) => {
-      setRedirect(data);
-    })
-    socket.on('error_message', (data) => {
-      setIsError(true);
-      setMessageError(data);
+    if (socket) {
+      socket.on('joined_room', ({ goRoom, name }) => {
+        if (goRoom && !redirectPage.redirecting) {
+          setRedirectPage({ ...redirectPage, redirecting: true });
+          setTimeout(() => setRedirectPage({ roomName: name, isRedirect: goRoom, redirecting: false }), 1000);
+        }
+      })
+      socket.on('error_message', (data) => setError({ isError: true, messageError: data }))
     }
-    );
-  })
-
-  const setRedirect = ({ goRoom, name }) => {
-    if (goRoom && !redirecting) {
-      setRedirecting(true);
-      setTimeout(() => setRedirectPage({ roomName: name, isRedirect: goRoom }), 1000);
-    }
-  }
+  }, [socket, setError, redirectPage])
 
   const createRoom = () => {
-    socket.emit('create_room', { room });
+    socket.emit('create_room', { room: room.name });
   }
 
   const joinRoom = () => {
-    setRedirecting(true);
-    setTimeout(() => setRedirectPage({ roomName: room, isRedirect: true }), 1000);
+    setRedirectPage({ ...redirectPage, redirecting: true });
+    setTimeout(() => setRedirectPage({ roomName: room.name, isRedirect: true, redirecting: false }), 1000);
   }
 
   if (redirectPage.isRedirect) return <Redirect to={`/room/${redirectPage.roomName}`} />
@@ -49,21 +38,19 @@ function Home() {
   return (
     <div className='App'>
       {
-        redirecting
+        redirectPage.redirecting
           ? <div>Redirecinando...</div>
           : null
       }
       {
-        isError
-          ? <MessageError message={messageError} callback={() => {
-            setIsError(false)
-          }} />
+        error.isError
+          ? <MessageError />
           : null
       }
       <div>
-        <input type='text' onChange={(e) => { setRoom(e.target.value) }} placeholder='Sala' />
-        <input type='button' disabled={!room} onClick={createRoom} value='Criar Sala' />
-        <input type='button' disabled={!room} onClick={joinRoom} value='Entrar em uma Sala' />
+        <input type='text' onChange={(e) => { dispatchData({ type: SET_ROOM_NAME, value: e.target.value }) }} placeholder='Sala' />
+        <input type='button' disabled={!room.name} onClick={createRoom} value='Criar Sala' />
+        <input type='button' disabled={!room.name} onClick={joinRoom} value='Entrar em uma Sala' />
       </div>
     </div>
   );

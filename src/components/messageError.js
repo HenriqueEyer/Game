@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
+import { UserDataContext } from '../context'
 
-const MessageError = ({ message, callback }) => {
+const MessageError = () => {
+  const {error, setError} = useContext(UserDataContext)
   useEffect(() => {
-    setTimeout(() => callback(), 2000);
-  }, [callback])
+    setTimeout(() => setError({isError: false, messageError: ''}), 2000);
+  }, [error, setError])
   return (
-    <div>{message}</div>
+    <div>{error.messageError}</div>
   );
 }
 

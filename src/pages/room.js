@@ -1,52 +1,49 @@
-import io from 'socket.io-client';
-import { useEffect, useState } from 'react';
-import MessageError from '../components/messageError'
-import ListUsers from '../components/listUsers'
+import { useEffect, useContext } from 'react';
+import MessageError from '../components/messageError';
+import ListUsers from '../components/listUsers';
+import { UserDataContext } from '../context'
+import { HANDLE_USERNAME, SET_ROOM_LIST_USERS, SET_ROOM_NAME, SET_LOGGED, SET_DATA_USER_ROOM } from '../labels/actions';
 
-let socket;
-const PORT = 'http://localhost:4555';
 
 const Room = (props) => {
-  const [username, setUsername] = useState('');
-  const [invalidRoom, setInvalidRoom] = useState(false);
-  const [messageError, setMessageError] = useState('');
-  const [logged, setLogged] = useState(false);
-  const [listUsers, setListUsers] = useState([]);
 
-  const { match: { params: { id } } } = props;
+  const { stateData, dispatchData, setError, error, socket } = useContext(UserDataContext);
+  const { room, username, logged } = stateData;
+
+  const { match: { params: { id: roomId } } } = props;
 
   useEffect(() => {
-    socket = io(PORT, { transports: ['websocket'] });
-  }, [])
+    if (roomId !== room.name) {
+      dispatchData({ type: SET_ROOM_NAME, value: roomId })
+    }
+  }, [roomId, room, dispatchData])
+
 
   useEffect(() => {
-    socket.on('new_user', (data) => setListUsers(data));
-    socket.on('error_message', (data) => {
-      setInvalidRoom(true);
-      setMessageError(data);
-    });
-    socket.on('logged', (data) => {
-      setListUsers(data.users);
-      setLogged(true);
-    })
+    if (socket) {
+      socket.on('new_user', (data) => dispatchData({ type: SET_ROOM_LIST_USERS, value: data }));
+      socket.on('logged', ({ users, user }) => {
+        dispatchData({ type: SET_LOGGED, value: { users, login: true } })
+        dispatchData({ type: SET_DATA_USER_ROOM, value: user })
+      });
+      socket.on('error_message', (data) => setError({ isError: true, messageError: data }));
+    }
   })
 
   const joinRoom = () => {
-    socket.emit('join_room', { room: id, username });
+    socket.emit('join_room', { room: room.name, username });
   }
 
   return (
     <div>
       {
-        invalidRoom
-          ? <MessageError message={messageError} callback={() => {
-            setInvalidRoom(false)
-          }} />
+        error.isError
+          ? <MessageError />
           : null
       }
-      <input type="text" onChange={(e) => setUsername(e.target.value)} placeholder="Apelido..." />
+      <input type="text" onChange={(e) => dispatchData({ type: HANDLE_USERNAME, value: e.target.value })} placeholder="Apelido..." />
       <input type="button" value="Entrar" onClick={joinRoom} />
-      {logged ? <ListUsers list={listUsers} /> : null}
+      {logged ? <ListUsers list={room.listUser} /> : null}
     </div>
   );
 }
