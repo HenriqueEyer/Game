@@ -26,7 +26,10 @@ const Room = (props) => {
         dispatchData({ type: SET_LOGGED, value: { users, login: true } })
         dispatchData({ type: SET_DATA_USER_ROOM, value: user })
       });
-      socket.on('error_message', (data) => setError({ isError: true, messageError: data }));
+      socket.on('error_message', (data) => {
+        console.log(data);
+        setError({ isError: true, messageError: data });
+      })
     }
   })
 

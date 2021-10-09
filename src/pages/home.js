@@ -20,7 +20,10 @@ const Home = () => {
           setTimeout(() => setRedirectPage({ roomName: name, isRedirect: goRoom, redirecting: false }), 1000);
         }
       })
-      socket.on('error_message', (data) => setError({ isError: true, messageError: data }))
+      socket.on('error_message', (data) => {
+        console.log(data);
+        setError({ isError: true, messageError: data })}
+        )
     }
   }, [socket, setError, redirectPage])
 

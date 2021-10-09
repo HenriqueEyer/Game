@@ -22,7 +22,6 @@ const reducer = (state, action) => {
     case SET_ROOM_NAME:
       return { ...state, room: { ...state.room, name: action.value } };
     case SET_DATA_USER_ROOM:
-      console.log(action)
       return { ...state, room: { ...state.room, yourData: action.value } };
     case SET_ROOM_LIST_USERS:
       return { ...state, room: { ...state.room, listUser: action.value } };
@@ -41,7 +40,7 @@ const UserDataProvider = ({ children }) => {
   const [stateData, dispatchData] = useReducer(reducer, initialState)
   const [error, setError] = useState({
     isError: false,
-    messageError: ''
+    messageError: {}
   })
 
   useEffect(() => {
